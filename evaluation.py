@@ -162,7 +162,7 @@ class Evaluation():
 			The mean recall value as a number between 0 and 1
 		"""
 
-		meanRecall = -1
+		meanRecall = 0
 
 		#Fill in code here
 		recall_scores = []
@@ -325,6 +325,26 @@ class Evaluation():
 		return nDCG
 	'''
 
+	def collect_relevant_docs(self, query_doc_IDs_ordered, true_doc_IDs, k):
+		# Collect relevant documents up to rank k
+		relevant_docs = []
+		for doc_id in query_doc_IDs_ordered[:k]:
+			if doc_id in true_doc_IDs:
+				relevant_docs.append(doc_id)
+		return relevant_docs
+	
+	def compute_relevance_score(self, query_doc_IDs_ordered, relevant_docs, k):
+		# Compute relevance scores for each document
+		relevance_scores = []
+		for doc_id in query_doc_IDs_ordered[:k]:
+			relevance_score = 0  # Default relevance score is 0
+
+			# Graded relevance (or can be made 4 to 1)
+			if doc_id in relevant_docs:
+				relevance_score = 5 - relevant_docs.index(doc_id)  # Compute relevance score for the document
+			relevance_scores.append(relevance_score)  # Append relevance score to the list
+		return relevance_scores
+
 	def queryNDCG(self, query_doc_IDs_ordered, query_id, true_doc_IDs, k):
 		"""
 		Computation of nDCG of the Information Retrieval System
@@ -351,26 +371,11 @@ class Evaluation():
 
 		nDCG = 0  # Initialize nDCG.
 
+		relevant_docs = self.collect_relevant_docs(query_doc_IDs_ordered,true_doc_IDs,k)
+		
 
-		# Collect relevant documents up to rank k
-		relevant_docs = []
-		for doc_id in query_doc_IDs_ordered[:k]:
-			if doc_id in true_doc_IDs:
-				relevant_docs.append(doc_id)
-
-
-		# Compute relevance scores for each document
-		relevance_scores = []
-		for doc_id in query_doc_IDs_ordered[:k]:
-			relevance_score = 0  # Default relevance score is 0
-
-			if doc_id in relevant_docs:
-
-				# In many relevance assessment scenarios, relevance is often graded on a scale, commonly ranging from 0 to 4 or 0 to 5: where higher numbers indicate greater relevance.
-				# For example: 0: Not relevant 1: Weakly relevant 2: Fairly relevant 3: Highly relevant 4: Perfectly relevant
-
-				relevance_score = 5 - relevant_docs.index(doc_id)  # Compute relevance score for the document
-			relevance_scores.append(relevance_score)  # Append relevance score to the list
+		relevance_scores = self.compute_relevance_score(query_doc_IDs_ordered, relevant_docs, k)
+		
 
 		# Compute ideal relevance scores
 		sorted_relevance_scores = sorted(relevance_scores, reverse=True)
